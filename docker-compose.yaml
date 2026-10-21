@@ -1,0 +1,58 @@
+services:
+  sonarqube:
+    image: sonarqube:lts-community
+    container_name: local-sonarqube
+    restart: unless-stopped
+    ports:
+      - "${SONARQUBE_PORT:-9000}:9000"
+    environment:
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    networks:
+      - local-dev-network
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: local-keycloak
+    restart: unless-stopped
+    command: start-dev
+    ports:
+      - "${KEYCLOAK_PORT:-8080}:8080"
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+    networks:
+      - local-dev-network
+
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: local-redisinsight
+    restart: unless-stopped
+    ports:
+      - "${REDISINSIGHT_PORT:-5520}:5540"
+    volumes:
+      - redisinsight_data:/data
+    networks:
+      - local-dev-network
+
+networks:
+  local-dev-network:
+    name: local-dev-network
+    driver: bridge
+
+volumes:
+  sonarqube_data:
+    name: local_sonarqube_data
+  sonarqube_extensions:
+    name: local_sonarqube_extensions
+  sonarqube_logs:
+    name: local_sonarqube_logs
+  keycloak_data:
+    name: local_keycloak_data
+  redisinsight_data:
+    name: local_redisinsight_data
